@@ -6,6 +6,8 @@ import psycopg2
 from dotenv import load_dotenv
 import os
 from fastapi import FastAPI,HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+
 from fastapi.responses import JSONResponse
 from pydantic_models import ProductIn, ProductOut
 load_dotenv()
@@ -16,7 +18,13 @@ product_service = ProductService(conn)
 sell_service = SellService(conn)
 
 app = FastAPI()
-
+app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,  
+        allow_methods=["*"],  
+        allow_headers=["*"],  
+    )
 
 @app.get("/products")
 def get_products():
@@ -64,6 +72,18 @@ def update_product(product_id: int, product: ProductIn):
         if rows_updated == 0:
             raise HTTPException(status_code=400, detail="Update failed")
         return existing_product.to_dict()
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    
+@app.delete("/products/{product_id}")
+def delete_product(product_id: int):
+    try:
+        rows_deleted = product_service.delete_product(product_id)
+        if rows_deleted == 0:
+            raise HTTPException(status_code=404, detail="Product not found")
+        return {"message": "Product deleted successfully"}
     except HTTPException as he:
         raise he
     except Exception as e:
