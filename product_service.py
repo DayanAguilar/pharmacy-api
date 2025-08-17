@@ -46,3 +46,12 @@ class ProductService:
         )
         self.db.commit()
         return cursor.rowcount
+    def delete_product(self, product_id):
+        cursor = self.db.cursor()
+        cursor.execute(
+            "DELETE FROM products WHERE product_id=%s",
+            (product_id,)
+        )
+        self.db.commit()
+        return cursor.rowcount
+    
