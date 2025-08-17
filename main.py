@@ -5,44 +5,44 @@ from sell import Sell
 import psycopg2
 from dotenv import load_dotenv
 import os
-import datetime
+from fastapi import FastAPI,HTTPException
+from fastapi.responses import JSONResponse
+from pydantic_models import ProductIn, ProductOut
 load_dotenv()
 POSTGRESS_SQL_URL = os.environ["POSTGRESS_SQL_URL"]
 
 conn = psycopg2.connect(POSTGRESS_SQL_URL)
 product_service = ProductService(conn)
-products = product_service.get_all_products()
-
-product = Product(
-    product_id=1033,
-    category="ejemplo",
-    product="Paracetamol",
-    laboratory="Bayer",
-    buy_price=5.0,
-    sell_price=7.5,
-    stock=100,
-    expire_date="2024-12-31",
-    alert_date="2024-11-30"
-)
-
-sell = Sell(
-    id=None,
-    product_id=1032,
-    date=datetime.datetime.now().strftime("%Y-%m-%d"),
-    quantity=1,
-    db=conn
-)
 sell_service = SellService(conn)
-# print(sell_service.create_sell(sell))
-sells = sell_service.report_by_date(datetime.datetime.now().strftime("%Y-%m-%d"))
-for s in sells:
-    print(s.to_dict())
-# # print(product_service.delete_product(1033))
-# for p in products:
-#     print(p.to_dict())
 
-# product = product_service.get_product_by_id(1032)
-# if product:
-#     print(product.to_dict())
+app = FastAPI()
 
-sell_service.generate_sell_report_by_date(datetime.datetime.now().strftime("%Y-%m-%d"))
+
+@app.get("/products")
+def get_products():
+    try:
+        products = product_service.get_all_products()
+        return [p.to_dict() for p in products]
+    except Exception as e:
+        return JSONResponse(status_code=404, content={"error": str(e)})
+
+@app.post("/products", response_model=ProductOut)
+def create_product(product: ProductIn):
+    try:
+        # convertir de ProductIn (Pydantic) → Product (tu clase)
+        product_obj = Product(
+            product_id=None,  # autoincrement
+            category=product.category,
+            product=product.product,
+            laboratory=product.laboratory,
+            buy_price=product.buy_price,
+            sell_price=product.sell_price,
+            stock=product.stock,
+            expire_date=product.expire_date,
+            alert_date=product.alert_date
+        )
+        product_id = product_service.create_product(product_obj)
+        product_obj.product_id = product_id
+        return product_obj.to_dict()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
