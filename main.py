@@ -27,11 +27,16 @@ product = Product(
 
 sell = Sell(
     id=None,
-    product_id=1033,
+    product_id=1032,
     date=datetime.datetime.now().strftime("%Y-%m-%d"),
+    quantity=1,
+    db=conn
 )
 sell_service = SellService(conn)
-print(sell_service.create_sell(sell))
+# print(sell_service.create_sell(sell))
+sells = sell_service.report_by_date(datetime.datetime.now().strftime("%Y-%m-%d"))
+for s in sells:
+    print(s.to_dict())
 # # print(product_service.delete_product(1033))
 # for p in products:
 #     print(p.to_dict())
@@ -40,3 +45,4 @@ print(sell_service.create_sell(sell))
 # if product:
 #     print(product.to_dict())
 
+sell_service.generate_sell_report_by_date(datetime.datetime.now().strftime("%Y-%m-%d"))

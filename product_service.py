@@ -72,3 +72,7 @@ class ProductService:
                 alert_date=row[7]
             )
         return None
+    @staticmethod
+    def get_price_by_id(self, product_id):
+        product = self.get_product_by_id(product_id)
+        return product.sell_price if product else 0
