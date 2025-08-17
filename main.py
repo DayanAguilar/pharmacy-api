@@ -22,6 +22,9 @@ product = Product(
     alert_date="2024-11-30"
 )
 
-# print(product_service.delete_product(1033))
-for p in products:
-    print(p.to_dict())
+# # print(product_service.delete_product(1033))
+# for p in products:
+#     print(p.to_dict())
+product = product_service.get_product_by_id(1032)
+if product:
+    print(product.to_dict())

@@ -55,3 +55,20 @@ class ProductService:
         self.db.commit()
         return cursor.rowcount
     
+    def get_product_by_id(self, product_id):
+        cursor = self.db.cursor()
+        cursor.execute("SELECT * FROM products WHERE product_id=%s", (product_id,))
+        row = cursor.fetchone()
+        if row:
+            return Product(
+                product_id=row[9],
+                category=row[0],
+                product=row[1],
+                laboratory=row[2],
+                buy_price=row[3],
+                sell_price=row[4],
+                stock=row[5],
+                expire_date=row[6],
+                alert_date=row[7]
+            )
+        return None
