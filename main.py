@@ -118,3 +118,16 @@ def create_sell(sell: SellIn):
         return sell_obj
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/sells/{date}")
+def get_sells_by_date(date: str):
+    try:
+        date_obj = datetime.datetime.strptime(date, "%Y-%m-%d").date()
+        sells = sell_service.generate_sell_report_by_date(date_obj)
+        if sells is None:
+            sells = []
+        return sells
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

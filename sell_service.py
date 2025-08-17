@@ -67,15 +67,27 @@ class SellService:
             sells.append(sell_obj)
         cursor.close()
         return sells
-
+    
     def generate_sell_report_by_date(self, date):
         sells = self.report_by_date(date)
         report = []
-        for s in sells:
+        total_amount = 0  
+        for s in sells or []:
             product_service = ProductService(self.db)
             product = product_service.get_product_by_id(s.product_id)
             if product:
-                report.append({"product_name": product.product, "date": s.date})
-                print(f"Sell ID: {s.id}, Product: {product.product}, Date: {s.date}")
-            else:
-                print(f"Sell ID: {s.id}, Product ID: {s.product_id} not found.")
+                item = {
+                    "product_id": s.product_id,
+                    "sell_id": s.id,
+                    "date": s.date,
+                    "quantity": s.quantity,
+                    "total_price": s.total_price,
+                    "product": product.product
+                }
+                report.append(item)
+                total_amount += s.total_price  
+        
+        return {
+            "sells": report,       
+            "total_amount": total_amount  
+        }
