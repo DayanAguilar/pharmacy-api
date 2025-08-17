@@ -1,4 +1,5 @@
 from product_service import ProductService
+from product import Product
 import psycopg2
 from dotenv import load_dotenv
 import os
@@ -9,5 +10,18 @@ conn = psycopg2.connect(POSTGRESS_SQL_URL)
 product_service = ProductService(conn)
 products = product_service.get_all_products()
 
-for product in products:
-    print(product.to_dict())
+product = Product(
+    product_id=None,
+    category="Medicamento",
+    product="Paracetamol",
+    laboratory="Bayer",
+    buy_price=5.0,
+    sell_price=7.5,
+    stock=100,
+    expire_date="2024-12-31",
+    alert_date="2024-11-30"
+)
+
+# print(product_service.create_product(product))
+for p in products:
+    print(p.to_dict())
