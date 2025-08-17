@@ -36,3 +36,13 @@ class ProductService:
         self.db.commit()
         return cursor.lastrowid
 
+    def update_product(self, product):
+        cursor = self.db.cursor()
+        cursor.execute(
+            "UPDATE products SET category=%s, product=%s, laboratory=%s, buy_price=%s, sell_price=%s, stock=%s, expire_date=%s, alert_date=%s WHERE product_id=%s",
+            (product.category, product.product, product.laboratory,
+             product.buy_price, product.sell_price, product.stock,
+             product.expire_date, product.alert_date, product.product_id)
+        )
+        self.db.commit()
+        return cursor.rowcount

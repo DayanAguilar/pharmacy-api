@@ -11,8 +11,8 @@ product_service = ProductService(conn)
 products = product_service.get_all_products()
 
 product = Product(
-    product_id=None,
-    category="Medicamento",
+    product_id=1033,
+    category="ejemplo",
     product="Paracetamol",
     laboratory="Bayer",
     buy_price=5.0,
@@ -22,6 +22,6 @@ product = Product(
     alert_date="2024-11-30"
 )
 
-# print(product_service.create_product(product))
+# print(product_service.update_product(product))
 for p in products:
     print(p.to_dict())
