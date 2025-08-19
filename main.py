@@ -13,8 +13,10 @@ from sell_service import SellService
 from sell import Sell
 from pydantic_models import ProductIn, ProductOut, SellIn, SellOut
 
+
 load_dotenv()
 POSTGRESS_SQL_URL = os.environ["POSTGRESS_SQL_URL"]
+
 
 connection_pool = psycopg2.pool.SimpleConnectionPool(
     minconn=1,  
@@ -25,10 +27,11 @@ connection_pool = psycopg2.pool.SimpleConnectionPool(
 if not connection_pool:
     raise Exception("Error creando el pool de conexiones")
 
+
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173","https://pharmacy-web-chi.vercel.app"],
+    allow_origins=["http://localhost:5173", "https://pharmacy-web-chi.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -37,10 +40,12 @@ app.add_middleware(
 
 def get_conn():
     conn = connection_pool.getconn()
+    conn.autocommit = True  
     try:
         yield conn
     finally:
         connection_pool.putconn(conn)
+
 
 
 @app.get("/products")
@@ -82,6 +87,7 @@ def update_product(product_id: int, product: ProductIn, conn=Depends(get_conn)):
         existing_product = product_service.get_product_by_id(product_id)
         if not existing_product:
             raise HTTPException(status_code=404, detail="Product not found")
+        
         existing_product.category = product.category
         existing_product.product = product.product
         existing_product.laboratory = product.laboratory
@@ -90,9 +96,11 @@ def update_product(product_id: int, product: ProductIn, conn=Depends(get_conn)):
         existing_product.stock = product.stock
         existing_product.expire_date = product.expire_date
         existing_product.alert_date = product.alert_date
+
         rows_updated = product_service.update_product(existing_product)
         if rows_updated == 0:
             raise HTTPException(status_code=400, detail="Update failed")
+        
         return existing_product.to_dict()
     except HTTPException as he:
         raise he
@@ -126,6 +134,7 @@ def create_sell(sell: SellIn, conn=Depends(get_conn)):
 
         total_price = sell.quantity * product.sell_price
         sell_date = datetime.datetime.now().date()
+
         sell_obj = SellOut(
             id=None,
             product_id=sell.product_id,
