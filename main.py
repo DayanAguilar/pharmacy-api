@@ -17,7 +17,7 @@ load_dotenv()
 POSTGRESS_SQL_URL = os.environ["POSTGRESS_SQL_URL"]
 
 connection_pool = psycopg2.pool.SimpleConnectionPool(
-    minconn=1, 
+    minconn=1,  
     maxconn=10, 
     dsn=POSTGRESS_SQL_URL
 )
@@ -28,7 +28,7 @@ if not connection_pool:
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
