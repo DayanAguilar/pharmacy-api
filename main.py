@@ -28,7 +28,7 @@ if not connection_pool:
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173/","https://pharmacy-web-chi.vercel.app/"],
+    allow_origins=["http://localhost:5173","https://pharmacy-web-chi.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
