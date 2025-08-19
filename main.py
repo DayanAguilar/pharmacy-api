@@ -214,7 +214,8 @@ def create_sell(sell: SellIn, conn=Depends(get_conn)):
                     product_id=sell.product_id,
                     date=sell_date,
                     quantity=sell.quantity,
-                    total_price=total_price
+                    total_price=total_price,
+                    db = conn,
                 )
                 sell_id = sell_service.create_sell(sell_obj)
 
