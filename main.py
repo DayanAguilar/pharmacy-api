@@ -210,7 +210,7 @@ def create_sell(sell: SellIn, conn=Depends(get_conn)):
                 sell_date = datetime.datetime.now().date()
 
                 sell_obj = Sell(
-                    sell_id=None,
+                    id=None,
                     product_id=sell.product_id,
                     date=sell_date,
                     quantity=sell.quantity,
