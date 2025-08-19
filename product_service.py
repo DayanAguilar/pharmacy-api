@@ -7,20 +7,23 @@ class ProductService:
 
     def get_all_products(self):
         cursor = self.db.cursor()
-        cursor.execute("SELECT * FROM products")
+        cursor.execute("""
+        SELECT category, product, laboratory, buy_price, sell_price, stock, expire_date, alert_date, product_id
+        FROM products
+        """)
         rows = cursor.fetchall()
         products = []
         for row in rows:
             product_obj = Product(
-                product_id=row[9],
                 category=row[0],
                 product=row[1],
                 laboratory=row[2],
                 buy_price=row[3],
                 sell_price=row[4],
-                stock=row[5],
+                stock=row[5],   
                 expire_date=row[6],
-                alert_date=row[7]
+                alert_date=row[7],
+                product_id=row[8]
             )
             products.append(product_obj)
         return products
