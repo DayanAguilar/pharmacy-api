@@ -1,6 +1,0 @@
-dotenv
-psycopg2-binary
-fastapi[standard]
-uvicorn
-pydantic
-uvicorn
