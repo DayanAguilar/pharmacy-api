@@ -178,25 +178,25 @@ app.post("/sells", getConnection, async (req: Request, res: Response) => {
 app.get("/sells/:date", getConnection, async (req: Request, res: Response) => {
   const client = (req as any).db;
   const { date } = req.params;
-
+  
   try {
     const result = await client.query(
-      `SELECT s.id, s.product_id, p.product, s.quantity, s.total_price, s.date
-       FROM sells s
-       JOIN products p ON s.product_id = p.product_id
-       WHERE DATE(s.date) = $1`,
+      `SELECT s.id, s.product_id, s.product, s.quantity, s.total_price, s.date 
+       FROM sells s 
+       WHERE s.date::date = $1::date
+       ORDER BY s.id`,
       [date]
     );
-
+    
+    console.log(`Buscando ventas para fecha: ${date}`);
+    console.log(`Resultados encontrados: ${result.rows.length}`);
+    
     res.json(result.rows);
-  } catch (err) {
-    await client.query("ROLLBACK");
-    console.error(err);
-    res.status(500).json({ error: "Error fetching sells" });
+  } catch (err: any) {
+    console.error('Error en query de ventas:', err);
+    res.status(500).json({ error: "Error fetching sells", details: err.message || "Internal server error" });
   }
 });
-
-
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
