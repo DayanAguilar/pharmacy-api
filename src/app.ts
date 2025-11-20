@@ -3,7 +3,8 @@ import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import { Pool } from "pg";
 import dotenv from "dotenv";
-
+import bcrypt from "bcryptjs";
+ 
 dotenv.config();
 
 const app = express();
@@ -197,7 +198,77 @@ app.get("/sells/:date", getConnection, async (req: Request, res: Response) => {
     res.status(500).json({ error: "Error fetching sells", details: err.message || "Internal server error" });
   }
 });
+app.post("/login", getConnection, async (req: Request, res: Response) => {
+  const client = (req as any).db;
+  const { username, password } = req.body;
 
+  try {
+    if (!username || !password) {
+      return res.status(400).json({ message: "Usuario y contraseña requeridos" });
+    }
+
+    const query = "SELECT * FROM users WHERE username = $1 LIMIT 1";
+    const values = [username];
+
+    const result = await client.query(query, values);
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({ message: "Usuario o contraseña incorrectos" });
+    }
+
+    const user = result.rows[0];
+    const isValid = await bcrypt.compare(password, user.password);
+
+    if (!isValid) {
+      return res.status(401).json({ message: "Usuario o contraseña incorrectos" });
+    }
+    return res.json({
+      message: "Login exitoso",
+      user: { id: user.id, username: user.username,role:user.role }
+   
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Error en el servidor" });
+  }
+});
+app.post("/user", getConnection, async (req: Request, res: Response) => {
+  const client = (req as any).db;
+  const { username, password } = req.body;
+  try {
+    if (!username || !password) {
+      return res.status(400).json({ message: "username y password son requeridos" });
+    }
+
+    const checkQuery = "SELECT id FROM users WHERE username = $1 LIMIT 1";
+    const checkResult = await client.query(checkQuery, [username]);
+
+    if (checkResult.rows.length > 0) {
+      return res.status(409).json({ message: "El username ya está en uso" });
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const insertQuery = `
+      INSERT INTO users (username, password, role)
+      VALUES ($1, $2, $3)
+      RETURNING id, username, role
+    `;
+
+    const values = [username, hashedPassword, "user"];
+
+    const insertResult = await client.query(insertQuery, values);
+    const user = insertResult.rows[0];
+
+    return res.status(201).json({
+      message: "Usuario creado exitosamente",
+      user
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Error en el servidor" });
+  }
+});
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
