@@ -150,7 +150,7 @@ app.post("/sells", getConnection, async (req: Request, res: Response) => {
     
     const sellResult = await client.query(
       `INSERT INTO sells (product_id, date, quantity, total_price, product)
-       VALUES ($1, NOW(), $2, $3, $4)
+       VALUES ($1, NOW() AT TIME ZONE 'America/La_Paz', $2, $3, $4)
        RETURNING id, date`,
       [product_id, quantity, total_price, product]
     );
