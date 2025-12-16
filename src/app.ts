@@ -121,10 +121,14 @@ app.delete("/products/:product_id", getConnection, async (req: Request, res: Res
 
 app.post("/sells", getConnection, async (req: Request, res: Response) => {
   const client = (req as any).db;
-  const { product_id, quantity } = req.body;
+  const { product_id, quantity, seller } = req.body;
 
   try {
-   
+    if (!seller) {
+      await client.query("ROLLBACK");
+      return res.status(400).json({ error: "Seller (username) es requerido" });
+    }
+
     const stockResult = await client.query(
       `SELECT stock, product, sell_price FROM products WHERE product_id=$1`,
       [product_id]
@@ -144,18 +148,15 @@ app.post("/sells", getConnection, async (req: Request, res: Response) => {
       });
     }
 
-    
     const total_price = sell_price * quantity;
 
-    
     const sellResult = await client.query(
-      `INSERT INTO sells (product_id, date, quantity, total_price, product)
-       VALUES ($1, NOW() AT TIME ZONE 'America/La_Paz', $2, $3, $4)
+      `INSERT INTO sells (product_id, date, quantity, total_price, product, seller)
+       VALUES ($1, NOW() AT TIME ZONE 'America/La_Paz', $2, $3, $4, $5)
        RETURNING id, date`,
-      [product_id, quantity, total_price, product]
+      [product_id, quantity, total_price, product, seller]
     );
 
-    
     await client.query(
       `UPDATE products SET stock = stock - $1 WHERE product_id=$2`,
       [quantity, product_id]
@@ -168,6 +169,7 @@ app.post("/sells", getConnection, async (req: Request, res: Response) => {
       date: sellResult.rows[0].date,
       total_price,
       product,
+      seller,
     });
   } catch (err) {
     await client.query("ROLLBACK");
@@ -176,13 +178,14 @@ app.post("/sells", getConnection, async (req: Request, res: Response) => {
   }
 });
 
+
 app.get("/sells/:date", getConnection, async (req: Request, res: Response) => {
   const client = (req as any).db;
   const { date } = req.params;
   
   try {
     const result = await client.query(
-      `SELECT s.id, s.product_id, s.product, s.quantity, s.total_price, s.date 
+      `SELECT s.id, s.product_id, s.product, s.quantity, s.total_price, s.date,s.seller 
        FROM sells s 
        WHERE s.date::date = $1::date
        ORDER BY s.id`,
